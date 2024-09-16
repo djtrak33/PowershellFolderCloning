@@ -48,7 +48,9 @@ function Verify-Paths{
 
 # Remove files from replica that don't exist in source
 function RemoveLeftOverFiles{
-    $replicaItems = Get-ChildItem -Path $ReplicaPath 
+    $replicaItems = Get-ChildItem -Path $ReplicaPath -Recurse
+    $foldersToDelete = @()
+
     foreach ($replicaItem in $replicaItems) {
 
         $relativePath = $replicaItem.FullName.Substring($ReplicaPath.Length)
@@ -56,13 +58,19 @@ function RemoveLeftOverFiles{
 
         if (!(Test-Path $sourceEquivalent)) {
             if ($replicaItem.PSIsContainer) {
-                Remove-Item -Path $replicaItem.FullName -Recurse
-                Log-Message "Removed directory: $($replicaItem.FullName)"
+                $foldersToDelete += $replicaItem
              } else {
                 Remove-Item -Path $replicaItem.FullName
                 Log-Message "Removed file: $($replicaItem.FullName)"
              }
-         }
+        }
+    }
+    #Leave folders for last and then sort by depth before removing them, this was made in order to be able to log every deleted item that was found inside folders that also needed to be deleted
+    $foldersToDelete = $foldersToDelete | Sort-Object { $_.FullName.Split([IO.Path]::DirectorySeparatorChar).Count } -Descending
+
+    foreach ($folder in $foldersToDelete) {
+        Log-Message "Removed directory: $($folder.FullName)"
+        Remove-Item -Path $folder.FullName -Recurse
     }
 }
 

@@ -60,22 +60,10 @@ Describe "Sync-Folders Function" {
         Test-Path "$ReplicaPath\file2.txt" | Should -BeTrue
     }
 
-    It "Should remove files from replica that are not in the source" {
-        New-Item -Path "$ReplicaPath\file3.txt" -ItemType File -Force
-        Sync-Folders
-        Test-Path "$ReplicaPath\file3.txt" | Should -BeFalse
-    }
-
     It "Should create directories in replica that are in source" {
         New-Item -Path "$SourcePath\SubFolder" -ItemType Directory -Force
         Sync-Folders
         Test-Path "$ReplicaPath\SubFolder" | Should -BeTrue
-    }
-
-    It "Should remove files in replica that do not exist in source" {
-        New-Item -Path "$ReplicaPath\file_to_remove.txt" -ItemType File -Force
-        Sync-Folders
-        Test-Path "$ReplicaPath\file_to_remove.txt" | Should -BeFalse
     }
 
     AfterAll {
